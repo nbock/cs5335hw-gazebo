@@ -34,21 +34,32 @@ class Robot {
     float pos_x;
     float pos_y;
     float pos_t;
+    float stamp;
 
     Robot(int argc, char* argv[], void (*cb)(Robot*));
     ~Robot();
 
     bool at_goal();
     void do_stuff();
+    void update();
     void done();
 
     void set_vel(double lvel, double rvel);
 
-    void on_scan(ConstSonarStampedPtr &msg);
+    void on_scan(ConstLaserScanStampedPtr &msg);
     void on_pose(ConstPoseStampedPtr &msg);
 
   private:
     bool task_done;
+    float raw_x;
+    float raw_y;
+    float raw_t;
+
+    int err_x;
+    int err_y;
+    int err_t;
+    int err_l;
+    int err_r;
 
     gazebo::transport::NodePtr node;
     gazebo::transport::PublisherPtr vel_pub;

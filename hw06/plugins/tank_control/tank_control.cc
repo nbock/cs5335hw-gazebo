@@ -123,8 +123,8 @@ public:
         int raw = msg->int_value();
         int xx = raw / 256 - 128;
         int yy = raw % 256 - 128;
-        double lvel = xx / 25.0;
-        double rvel = yy / 25.0;
+        double lvel = 3 * (xx / 25.0);
+        double rvel = 3 * (yy / 25.0);
 
         std::cerr << "Got vel cmd: " << lvel << "," << rvel << std::endl;
 
