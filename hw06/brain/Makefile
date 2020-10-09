@@ -5,7 +5,7 @@ all: $(BIN)
 
 build/Makefile: Makefile CMakeLists.txt
 	mkdir -p build
-	(cd build && cmake ..)
+	(cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..)
 
 $(BIN): $(wildcard *.cc) build/Makefile
 	(cd build && make)

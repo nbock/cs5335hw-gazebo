@@ -8,6 +8,8 @@
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/gazebo_client.hh>
 
+double clamp(double,double,double);
+
 class LaserHit {
   public:
     LaserHit()

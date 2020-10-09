@@ -10,6 +10,7 @@ using namespace std;
 
 typedef lock_guard<mutex> guard;
 
+#include <X11/Xlib.h>
 #include <gtk/gtk.h>
 
 /* Surface to store current scribbles */
@@ -119,11 +120,15 @@ button_press_event_cb(GtkWidget      *widget,
     if (surface == NULL)
         return FALSE;
 
+    /*
     if (event->button == GDK_BUTTON_PRIMARY)
     {
         draw_brush(widget, event->x, event->y);
     }
-    else if (event->button == GDK_BUTTON_SECONDARY)
+    else 
+    */
+      
+    if (event->button == GDK_BUTTON_SECONDARY)
     {
         clear_surface();
         gtk_widget_queue_draw(widget);
@@ -184,7 +189,7 @@ activate (GtkApplication *app,
 
     drawing_area = gtk_drawing_area_new();
     /* set a minimum size */
-    gtk_widget_set_size_request(drawing_area, 100, 100);
+    gtk_widget_set_size_request(drawing_area, 600, 600);
 
     gtk_container_add(GTK_CONTAINER(frame), drawing_area);
 
@@ -195,10 +200,8 @@ activate (GtkApplication *app,
                      G_CALLBACK(configure_event_cb), NULL);
 
     /* Event signals */
-    /*
     g_signal_connect (drawing_area, "motion-notify-event",
                       G_CALLBACK (motion_notify_event_cb), NULL);
-    */
     g_signal_connect(drawing_area, "button-press-event",
                      G_CALLBACK(button_press_event_cb), NULL);
 
@@ -228,16 +231,20 @@ viz_hit(float range, float angle)
     float dx = 0.5 * range * cos(angle);
     float dy = 0.5 * range * sin(angle);
 
+    /*
     cout << "rr,aa; dx,dy = "
          << range << "," << angle << "; "
          << dx << "," << dy << endl;
+    */
 
     int xx = dd + (dd*dx);
     int yy = hh - (dd + (dd*dy));
 
+    /*
     cout << "ww,hh; xx,yy = "
          << ww << "," << hh << "; "
          << xx << "," << yy << endl;
+    */
 
     draw_brush(drawing_area, xx, yy);
 }
@@ -245,6 +252,8 @@ viz_hit(float range, float angle)
 int
 viz_run(int argc, char **argv)
 {
+    XInitThreads();
+
     GtkApplication *app;
 
     app = gtk_application_new("site.ntuck-neu.brain", G_APPLICATION_FLAGS_NONE);
