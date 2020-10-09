@@ -2,6 +2,17 @@
 
 require 'erb'
 
+class Grid
+  def initialize(size)
+    @cells = {}
+    0.upto(size-1) do |ii|
+      0.upto(size-1) do |jj|
+        @cells["#{ii},#{jj}"] =
+      end
+    end
+  end
+end
+
 class MazeGen
   def initialize()
     @wall_ii = 0
@@ -31,28 +42,12 @@ class MazeGen
   def gen
     tpl = ERB.new(File.read("template.xml.erb"), trim_mode: "-<>")
     walls = []
-    (-6).upto(6) do |ii|
-      xx = 2 + ii * 4
-      skips = [-roll(), roll()]
-      (-6).upto(6) do |jj|
-        yy = jj * 3
-        if ii.abs == 6 then
-          walls.push(wall(xx, yy))
-        else
-          if skips.include?(jj) then
-            dy = (jj.even?) ? 2 : -2
-            if skips[ii % 2] == jj && ii != 5 then
-              walls.push(wall(xx + 2, yy + dy, true))
-            end
-          else
-            walls.push(wall(xx, yy))
-          end
-        end
-      end
-      if ii != 6 then
-        walls.push(wall(xx + 2, -19, true))
-        walls.push(wall(xx + 2, 19, true))
-      end
+    (-9).upto(9) do |ii|
+      xx = ii * 3
+      walls.push(wall(xx, -28, true))
+      walls.push(wall(xx, 28, true))
+      walls.push(wall(-28, xx, false))
+      walls.push(wall(28, xx, false))
     end
 
     puts tpl.run(binding)

@@ -14,7 +14,10 @@ callback(Robot* robot)
 {
     cout << "\n===" << endl;
     for (auto hit : robot->ranges) {
-        cout << hit.range << "@" << hit.angle << endl;
+        if (hit.range < 100) {
+            viz_hit(hit.range, hit.angle);
+        }
+        //cout << hit.range << "@" << hit.angle << endl;
     }
     cout << "x,y,t = "
          << robot->pos_x << ","
@@ -36,5 +39,5 @@ main(int argc, char* argv[])
     Robot robot(argc, argv, callback);
     std::thread rthr(robot_thread, &robot);
 
-    return run_viz(argc, argv);
+    return viz_run(argc, argv);
 }

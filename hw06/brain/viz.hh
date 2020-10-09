@@ -1,6 +1,7 @@
 #ifndef VIZ_H
 #define VIZ_H
 
-int run_viz(int argc, char **argv);
+int viz_run(int argc, char **argv);
+int viz_hit(float range, float angle);
 
 #endif
