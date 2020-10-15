@@ -179,7 +179,7 @@ Robot::on_pose(ConstPoseStampedPtr &msg)
 
     auto rot = msg->pose().orientation();
     ignition::math::Quaternion<double> qrot(rot.w(), rot.x(), rot.y(), rot.z());
-    this->pos_t = qrot.Yaw();
+    this->raw_t = qrot.Yaw();
 
     this->update();
 }
