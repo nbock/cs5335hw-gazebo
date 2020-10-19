@@ -214,6 +214,7 @@ activate (GtkApplication *app,
                           | GDK_POINTER_MOTION_MASK);
 
     gtk_widget_show_all(window);
+    gdk_threads_init();
 }
 
 void
