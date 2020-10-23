@@ -49,11 +49,9 @@ nudge(int* ee)
 float
 degrade(float xx, int ee)
 {
-    /*
     float aa = 1.0f + 0.05 * float(ee);
     return aa * xx;
-    */
-    return 1.05*xx + 0.2*ee;
+    //return 1.05*xx + 0.2*ee;
 }
 
 Robot::Robot(int argc, char* argv[], void (*cb)(Robot*))
