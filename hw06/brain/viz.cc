@@ -236,7 +236,8 @@ viz_hit(float range, float angle)
     //guard _gg(mx);
     g_mutex_lock(&mutex_interface);
 
-    int ww, hh;
+    int ww = 0;
+    int hh = 0;
     gtk_window_get_size(GTK_WINDOW(window), &ww, &hh);
     //cout << "window: " << ww << "," << hh << endl;
 
