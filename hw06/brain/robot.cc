@@ -49,9 +49,11 @@ nudge(int* ee)
 float
 degrade(float xx, int ee)
 {
+    /*
     float aa = 1.0f + 0.05 * float(ee);
     return aa * xx;
-    //return 1.05*xx + 0.2*ee;
+    */
+    return 1.05*xx + 0.2*ee;
 }
 
 Robot::Robot(int argc, char* argv[], void (*cb)(Robot*))
@@ -140,8 +142,8 @@ Robot::done()
 void
 Robot::set_vel(double lvel, double rvel)
 {
-    lvel = clamp(-5, degrade(lvel, err_l), 5);
-    rvel = clamp(-5, degrade(rvel, err_r), 5);
+    lvel = clamp(-5, (lvel + 0.2*err_l), 5); // reduce lvel error to 20%
+    rvel = clamp(-5, (rvel + 0.2*err_r), 5); // reduce rvel error to 20%
     int xx = 128 + int(lvel * 25.0);
     int yy = 128 + int(rvel * 25.0);
     auto msg = msgs::ConvertAny(xx * 256 + yy);
