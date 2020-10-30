@@ -2,11 +2,6 @@
 #include <string>
 #include <vector>
 
-#include <time.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include "robot.hh"
 
 using std::cout;
@@ -28,55 +23,34 @@ clamp(double xmin, double xx, double xmax)
     return xx;
 }
 
-void
-nudge(int* ee)
-{
-    int roll = rand() % 6;
-    if (roll == 0) {
-        *ee += 1;
-    }
-    if (roll == 1) {
-        *ee -= 1;
-    }
-    if (*ee > 10) {
-        *ee = 10;
-    }
-    if (*ee < -10) {
-        *ee = -10;
-    }
-}
-
-float
-degrade(float xx, int ee)
-{
-    /*
-    float aa = 1.0f + 0.05 * float(ee);
-    return aa * xx;
-    */
-    return 1.05*xx + 0.2*ee;
-}
-
 Robot::Robot(int argc, char* argv[], void (*cb)(Robot*))
-    : on_update(cb), task_done(false), stamp(0.0f),
-      err_x(5), err_y(0), err_l(1), err_r(0)
+    : on_update(cb), task_done(false)
 {
-    srand(getpid()^time(0));
-
     client::setup(argc, argv);
     node = NodePtr(new Node());
     node->Init();
 
-    vel_pub = node->Advertise<msgs::Any>("~/tankbot0/vel_cmd", 50);
+    vel_pub = node->Advertise<msgs::Any>("~/tankbot0/vel_cmd");
     vel_pub->WaitForConnection();
 
     cout << "advertise on " << vel_pub->GetTopic() << endl;
 
+    /*
     scan_sub = node->Subscribe(
-        string("~/tankbot0/tankbot/lazstar/link/laser/scan"),
+        string("~/tankbot0/tankbot/ultrasonic_sensor/link/sonar/sonar"),
         &Robot::on_scan,
         this,
         false
     );
+    */
+    
+    scan_sub = node->Subscribe(
+        string("~/tankbot0/tankbot/camera_sensor/link/camera/image"),
+        &Robot::on_scan,
+        this,
+        false
+    );
+    
 
     pose_sub = node->Subscribe(
         string("~/tankbot0/pose"),
@@ -109,29 +83,13 @@ Robot::do_stuff()
     gazebo::common::Time::MSleep(100);
 }
 
-void
-Robot::update()
-{
-    nudge(&(this->err_x));
-    nudge(&(this->err_y));
-    nudge(&(this->err_l));
-    nudge(&(this->err_r));
-
-    this->pos_x = degrade(raw_x, err_x);
-    this->pos_y = degrade(raw_y, err_y);
-    this->pos_t = raw_t; // no error on heading position, not worth it anymore
-
-    this->on_update(this);
-}
-
 bool
 Robot::at_goal()
 {
-    double dx = GOAL_X - this->raw_x;
-    double dy = GOAL_Y - this->raw_y;
+    double dx = GOAL_X - this->pos_x;
+    double dy = GOAL_Y - this->pos_y;
     return (abs(dx) < 0.75 && abs(dy) < 0.75);
 }
-
 
 void
 Robot::done()
@@ -142,52 +100,48 @@ Robot::done()
 void
 Robot::set_vel(double lvel, double rvel)
 {
-    // Generate a random error modifier in the range [-10, 10]% 
-    auto r_error = rvel * ((rand() % 21) - 10) * 0.01; 
-    auto l_error = lvel * ((rand() % 21) - 10) * 0.01;
-    
-    // Apply error and clamp the velocities.
-    lvel = clamp(-5, lvel + l_error, 5);
-    rvel = clamp(-5, rvel + r_error, 5);
-
+    lvel = clamp(-10, lvel, 10);
+    rvel = clamp(-10, rvel, 10);
+    cout << "set_vel: " << lvel << "," << rvel << endl;
     int xx = 128 + int(lvel * 25.0);
     int yy = 128 + int(rvel * 25.0);
     auto msg = msgs::ConvertAny(xx * 256 + yy);
+    cout << "send vmsg = " << msg.int_value() << endl;
     this->vel_pub->Publish(msg);
 }
 
+/*
 void
-Robot::on_scan(ConstLaserScanStampedPtr &msg)
+Robot::on_scan(ConstSonarStampedPtr &msg)
 {
-    gazebo::common::Time tt = gazebo::msgs::Convert(msg->time());
-    this->stamp = tt.Float();
+    cout << "Receiving the Sonar message from Sonar Sensor" << endl;
+    msgs::Sonar sonar = msg->sonar();
+    double hit_range = sonar.range();
+    range = hit_range;
 
-    msgs::LaserScan scan = msg->scan();
-    auto xs = scan.ranges();
+    this->on_update(this);
+}
+*/
 
-    this->ranges.clear();
-    for (long ii = 0; ii < xs.size(); ++ii) {
-        double range = xs[ii];
-        double theta = scan.angle_min() + ii*scan.angle_step();
-        this->ranges.push_back(LaserHit(range, theta));
-    }
+void
+Robot::on_scan(ConstImageStampedPtr &msg)
+{
+    msgs::Image image = msg->image();
+    cout << "Receving image ! " << endl;
 
-    this->update();
+    this->on_update(this);
 }
 
 void
 Robot::on_pose(ConstPoseStampedPtr &msg)
 {
-    gazebo::common::Time tt = gazebo::msgs::Convert(msg->time());
-    this->stamp = tt.Float();
-
     auto pos = msg->pose().position();
-    this->raw_x = pos.x();
-    this->raw_y = pos.y();
+    this->pos_x = pos.x();
+    this->pos_y = pos.y();
 
     auto rot = msg->pose().orientation();
     ignition::math::Quaternion<double> qrot(rot.w(), rot.x(), rot.y(), rot.z());
-    this->raw_t = qrot.Yaw();
+    this->pos_t = qrot.Yaw();
 
-    this->update();
+    this->on_update(this);
 }

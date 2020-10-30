@@ -1,61 +1,32 @@
 
 #include <iostream>
-#include <thread>
 #include <math.h>
 
 #include "robot.hh"
-#include "viz.hh"
 
 using std::cout;
 using std::endl;
 
+/*
+To view the camera image in time, you could press CTRL-T in Gazebo
+, choosing the Topic-"~/tankbot0/tankbot/camera_sensor/link/camera/image", 
+then a Image Window will pop up, in order to view the Image in time.
+*/
+
 void
 callback(Robot* robot)
 {
-    cout << "\n===" << endl;
-    for (auto hit : robot->ranges) {
-        if (hit.range < 100) {
-            viz_hit(hit.range, hit.angle);
-        }
-        //cout << hit.range << "@" << hit.angle << endl;
-    }
-
-    if (robot->ranges.size() < 5) {
+    if (robot->range < 1.0) {
+        robot->set_vel(-5.0, 5.0);
         return;
     }
 
-    float lft = clamp(0.0, robot->ranges[2].range, 2.0);
-    float fwd = clamp(0.0, robot->ranges[3].range, 2.0);
-    float rgt = clamp(0.0, robot->ranges[4].range, 2.0);
-    cout << "lft,fwd,rgt = "
-         << lft << ","
-         << fwd << ","
-         << rgt << endl;
-
-    float spd = fwd - 1.0;
-    float trn = clamp(-1.0, lft - rgt, 1.0);
-
-    if (fwd < 1.2) {
-      spd = 0;
-      trn = 1;
+    if (robot->range < 1.7) {
+        robot->set_vel(5.0, 5.0);
+        return;
     }
 
-    cout << "spd,trn = " << spd << "," << trn << endl;
-    robot->set_vel(spd + trn, spd - trn);
-
-    /*
-    cout << "x,y,t = "
-         << robot->pos_x << ","
-         << robot->pos_y << ","
-         << robot->pos_t << endl;
-    robot->set_vel(robot->pos_t, -robot->pos_t);
-    */
-}
-
-void
-robot_thread(Robot* robot)
-{
-    robot->do_stuff();
+    robot->set_vel(5.0, -5.0);
 }
 
 int
@@ -63,7 +34,7 @@ main(int argc, char* argv[])
 {
     cout << "making robot" << endl;
     Robot robot(argc, argv, callback);
-    std::thread rthr(robot_thread, &robot);
+    robot.do_stuff();
 
-    return viz_run(argc, argv);
+    return 0;
 }
