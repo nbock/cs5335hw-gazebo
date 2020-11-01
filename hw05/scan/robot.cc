@@ -2,11 +2,6 @@
 #include <string>
 #include <vector>
 
-#include "opencv2/core/utility.hpp"
-#include "opencv2/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
-
 #include "robot.hh"
 
 using std::cout;
@@ -24,6 +19,7 @@ double
 clamp(double xmin, double xx, double xmax)
 {
     if (xx < xmin) return xmin;
+    if (xx > xmax) return xmax;
     return xx;
 }
 
@@ -37,16 +33,11 @@ Robot::Robot(int argc, char* argv[], void (*cb)(Robot*))
     vel_pub = node->Advertise<msgs::Any>("~/tankbot0/vel_cmd");
     vel_pub->WaitForConnection();
 
-    scan_sub = node->Subscribe(
-        string("~/tankbot0/tankbot/ultrasonic_sensor/link/sonar/sonar"),
-        &Robot::on_scan,
-        this,
-        false
-    );
+    cout << "advertise on " << vel_pub->GetTopic() << endl;
 
     scan_sub = node->Subscribe(
-        string("~/tankbot0/tankbot/camera_sensor/link/camera/image"),
-        &Robot::on_frame,
+        string("~/tankbot0/tankbot/sonar/link/laser/scan"),
+        &Robot::on_scan,
         this,
         false
     );
@@ -99,44 +90,30 @@ Robot::done()
 void
 Robot::set_vel(double lvel, double rvel)
 {
-    auto r_error = lvel * ((rand() % 21) - 10) * 0.01;
-    auto l_error = rvel * ((rand() % 21) - 10) * 0.01;
-
-    lvel = clamp(-4, lvel + l_error, 4);
-    rvel = clamp(-4, rvel + r_error, 4);
-
-    //cout << "set_vel: " << lvel << "," << rvel << endl;
+    lvel = clamp(-10, lvel, 10);
+    rvel = clamp(-10, rvel, 10);
+    cout << "set_vel: " << lvel << "," << rvel << endl;
     int xx = 128 + int(lvel * 25.0);
     int yy = 128 + int(rvel * 25.0);
     auto msg = msgs::ConvertAny(xx * 256 + yy);
-    //cout << "send vmsg = " << msg.int_value() << endl;
+    cout << "send vmsg = " << msg.int_value() << endl;
     this->vel_pub->Publish(msg);
 }
 
 void
-Robot::on_scan(ConstSonarStampedPtr &msg)
+Robot::on_scan(ConstLaserScanStampedPtr &msg)
 {
-    //cout << "Receiving the Sonar message from Sonar Sensor" << endl;
-    msgs::Sonar sonar = msg->sonar();
-    double hit_range = sonar.range();
-    range = hit_range;
+    msgs::LaserScan scan = msg->scan();
+    auto xs = scan.ranges();
 
-    this->on_update(this);
-}
-
-void
-Robot::on_frame(ConstImageStampedPtr &msg)
-{
-    msgs::Image image = msg->image();
-
-    char* data = (char*)malloc(image.data().size());
-    memcpy(data, image.data().c_str(), image.data().size());
-    cv::Mat temp(image.height(), image.width(), CV_8UC3, data);
-    cv::Mat temp2 = temp.clone();
-    cv::cvtColor(temp, temp2, cv::COLOR_RGBA2BGRA);
-    this->frame = temp2.clone();
-    assert(this->frame.size().height > 0);
-    free(data);
+    range = 999.0;
+    for (long ii = 0; ii < xs.size(); ++ii) {
+        double hit_range = xs[ii];
+        //double theta = scan.angle_min() + ii*scan.angle_step();
+        if (hit_range < range) {
+            range = hit_range;
+        }
+    }
 
     this->on_update(this);
 }
@@ -144,12 +121,9 @@ Robot::on_frame(ConstImageStampedPtr &msg)
 void
 Robot::on_pose(ConstPoseStampedPtr &msg)
 {
-    auto x_error = ((rand() % 21) - 10) * 0.02;
-    auto y_error = ((rand() % 21) - 10) * 0.02;
-
     auto pos = msg->pose().position();
-    this->pos_x = pos.x() + x_error;
-    this->pos_y = pos.y() + y_error;
+    this->pos_x = pos.x();
+    this->pos_y = pos.y();
 
     auto rot = msg->pose().orientation();
     ignition::math::Quaternion<double> qrot(rot.w(), rot.x(), rot.y(), rot.z());

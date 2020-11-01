@@ -6,15 +6,12 @@
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/gazebo_client.hh>
 
-#include <opencv2/core/mat.hpp>
-
 class Robot {
   public:
     void (*on_update)(Robot*);
 
     float range;
     float pos_t;
-    cv::Mat frame;
 
     Robot(int argc, char* argv[], void (*cb)(Robot*));
     ~Robot();
@@ -25,8 +22,7 @@ class Robot {
 
     void set_vel(double lvel, double rvel);
 
-    void on_scan(ConstSonarStampedPtr &msg);
-    void on_frame(ConstImageStampedPtr &msg);
+    void on_scan(ConstLaserScanStampedPtr &msg);
     void on_pose(ConstPoseStampedPtr &msg);
 
   private:
@@ -37,7 +33,6 @@ class Robot {
     gazebo::transport::NodePtr node;
     gazebo::transport::PublisherPtr vel_pub;
     gazebo::transport::SubscriberPtr scan_sub;
-    gazebo::transport::SubscriberPtr frame_sub;
     gazebo::transport::SubscriberPtr pose_sub;
 };
 

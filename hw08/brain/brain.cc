@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "robot.hh"
+#include "cam.hh"
 
 using std::cout;
 using std::endl;
@@ -16,22 +17,18 @@ then a Image Window will pop up, in order to view the Image in time.
 void
 callback(Robot* robot)
 {
-    if (robot->range < 1.0) {
-        robot->set_vel(-5.0, 5.0);
-        return;
-    }
+    cout << "here2" <<endl;
+    cam_show(robot->frame);
 
-    if (robot->range < 1.7) {
-        robot->set_vel(5.0, 5.0);
-        return;
-    }
-
-    robot->set_vel(5.0, -5.0);
+    robot->set_vel(0.0, 0.0);
 }
 
 int
 main(int argc, char* argv[])
 {
+    cout << "here1" <<endl;
+    cam_init();
+
     cout << "making robot" << endl;
     Robot robot(argc, argv, callback);
     robot.do_stuff();
