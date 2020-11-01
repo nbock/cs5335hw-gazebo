@@ -12,6 +12,8 @@ class Robot {
   public:
     void (*on_update)(Robot*);
 
+    float pos_x;
+    float pos_y;
     float range;
     float pos_t;
     cv::Mat frame;
@@ -30,8 +32,6 @@ class Robot {
     void on_pose(ConstPoseStampedPtr &msg);
 
   private:
-    float pos_x;
-    float pos_y;
     bool task_done;
 
     gazebo::transport::NodePtr node;
