@@ -25,7 +25,8 @@ callback(Robot* robot)
         }
     }
 
-    grid_find_path(pose.x, pose.y, 0.0f, 20.0f);
+    // Goal is at x = 20, y = 0
+    grid_find_path(pose.x, pose.y, 20.0f, 0.0f);
 
     Mat view = grid_view(pose);
     viz_show(view);
