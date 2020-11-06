@@ -44,7 +44,7 @@ Robot::Robot(int argc, char* argv[], void (*cb)(Robot*))
         false
     );
 
-    scan_sub = node->Subscribe(
+    frame_sub = node->Subscribe(
         string("~/tankbot0/tankbot/camera_sensor/link/camera/image"),
         &Robot::on_frame,
         this,
