@@ -1,5 +1,11 @@
 package site.ntuck_neu.light_toggle
 
+// Built in Android Studio
+// https://developer.android.com/studio/
+
+// Connecting to USB Serial with
+// https://github.com/mik3y/usb-serial-for-android
+
 import android.content.Context
 import android.hardware.usb.UsbManager
 import androidx.appcompat.app.AppCompatActivity
@@ -23,20 +29,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
         openSerial()
     }
 
-    override fun onCheckedChanged(_btn: CompoundButton?, checked: Boolean) {
-        val text1 = findViewById<TextView>(R.id.text1)
-        if (checked) {
-            text1.setText("on")
-            port?.write("on\n".toByteArray(), 100)
-        }
-        else {
-            text1.setText("off")
-            port?.write("off\n".toByteArray(), 100)
-        }
-    }
-
-    // https://github.com/mik3y/usb-serial-for-android
-    // ref: example code
+    // ref: example code from mik3y serial lib
     fun openSerial() {
         val mgr = getSystemService(Context.USB_SERVICE) as UsbManager
         val drivers = UsbSerialProber.getDefaultProber().findAllDrivers(mgr)
@@ -49,11 +42,25 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
         if (conn == null) {
             val text1 = findViewById<TextView>(R.id.text1)
             text1.setText("need permission")
+
+            // This crashes the first time, but then works.
             mgr.requestPermission(drv.getDevice(), null)
         }
 
         port = drv.ports[0]
         port?.open(conn);
         port?.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+    }
+
+    override fun onCheckedChanged(_btn: CompoundButton?, checked: Boolean) {
+        val text1 = findViewById<TextView>(R.id.text1)
+        if (checked) {
+            text1.setText("on")
+            port?.write("on\n".toByteArray(), 100)
+        }
+        else {
+            text1.setText("off")
+            port?.write("off\n".toByteArray(), 100)
+        }
     }
 }
