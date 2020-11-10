@@ -50,6 +50,8 @@ class RgRobot : public Robot {
     RgRobot(int argc, char* argv[], void (*cb)(Robot*));
     ~RgRobot();
 
+    void read_range();
+
     float get_range();
     void set_vel(double lvel, double rvel);
     void do_stuff();

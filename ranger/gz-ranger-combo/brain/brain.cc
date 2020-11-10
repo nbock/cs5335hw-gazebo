@@ -1,23 +1,20 @@
 
 #include <iostream>
 #include <string>
+#include <filesystem>
 #include <math.h>
+#include <string.h>
 
 #include "robot.hh"
 
 using std::cout;
 using std::endl;
 
-/*
-To view the camera image in time, you could press CTRL-T in Gazebo
-, choosing the Topic-"~/tankbot0/tankbot/camera_sensor/link/camera/image", 
-then a Image Window will pop up, in order to view the Image in time.
-*/
-
 void
 callback(Robot* robot)
 {
-    float speed = clamp(0.0, robot->get_range() - 1.0, 1.0);
+    float speed = 6 * clamp(0.0, robot->get_range() - 0.25, 1.0);
+    cout << "speed: " << speed << endl;
     robot->set_vel(speed, speed);
 }
 
@@ -26,12 +23,15 @@ main(int argc, char* argv[])
 {
     Robot* robot = 0;
 
-    if (std::string(argv[0]) == "gz_robot") {
+    std::string bname(basename(argv[0]));
+    cout << "bin: [" << bname << "]" << endl;
+
+    if (bname == "gz_brain") {
         cout << "making robot: Gazebo mode" << endl;
         robot = new GzRobot(argc, argv, callback);
     }
 
-    if (std::string(argv[0]) == "rg_robot") {
+    if (bname == "rg_brain") {
         cout << "making robot: Ranger mode" << endl;
         robot = new RgRobot(argc, argv, callback);
     }

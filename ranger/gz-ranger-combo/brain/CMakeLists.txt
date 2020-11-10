@@ -29,6 +29,7 @@ pkg_check_modules(LIBSERIAL REQUIRED libserial)
 include_directories(${LIBSERIAL_INCLUDE_DIRS})
 link_directories("${LIBSERIAL_LIBRARY_DIRS}")
 
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 add_executable(brain brain.cc gz_robot.cc rg_robot.cc)
 TARGET_LINK_LIBRARIES(brain ${GTK3_LIBRARIES})
